@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    
+    <title>Databases - fly Documentation</title>
+    <style  type="text/css">
+      h1 {border-bottom: 5px solid #ddd;}
+      pre {
+        background: #eee;
+        border: 1px dashed #ddd;
+        padding: 0 1em;
+        margin: 1em 10em 1em 1em;
+      }
+      #navigation {
+        float: right;
+        border: 1px solid #ddd;
+        border-width: 0 0 1px 1px;
+        background: #fff;
+        padding: 1em;
+        margin-left: 1em;
+      }
+    </style>
+  </head>
+<body>
+  <div id='navigation'>
+    <h3>Navigation</h3>
+    <ul>
+      <li><a href='./routes.html'>Routes</a></li>
+      <li><a href='./home.html'>Home</a></li>
+      <li><a href='./databases.html'>Databases</a></li>
+      <li><a href='./templates.html'>Templates</a></li>
+    </ul>
+  </div>
+  <h1>Databases</h1>
+  <p>fly offers persistent storage of key/value pairs using the <code>fly.db</code> module variable.</p>
+
+
+	<p>The module variable <code>fly.db</code> gives access to any number of databases objects, each one stored in <code>fly.db.database_name</code>. The database objects behave like mappings (dictionaries), except that keys are always strings and values must be pickle-able. Printing a database object doesn’t print the keys and values, and the items() and values() methods are not supported.</p>
+
+
+	<p>You can use keys or attributes to access the databases values. Both <code>fly.db.db_name.key_name</code> and <code>fly.db[db_name][key_name]</code> will work the same. Missing databases are created on demand, so you don&#8217;t have to check for the existence of a database or create one explicitly. Missing keys will raise KeyError as expected.</p>
+
+
+	<h3>Persistence</h3>
+
+
+	<p>During a request live-cycle, all changes to the databases are cached in thread-local memory. At the end of the request, the changes are saved automatically so the next request will have access to the updated values. Databases are stored in files located in `fly.DB_PATH`. Be sure to allow write-access to this path.</p>
+
+
+	<h3>Race conditions</h3>
+
+
+	<p>You don&#8217;t have do worry about file corruption but race conditions are still a problem in multi-threaded or forked environments. You can call <code>fly.db.save()</code> or <code>botle.db.database_name.save()</code> to flush the thread-local memory cache to disk, but there is no way to detect database changes made in other threads until these threads call <code>fly.db.save()</code> or leave the current request cycle.</p>
+
+
+	<h2>Example</h2>
+
+
+<pre>
+from fly import route, db
+@route('/db/counter')
+def db_counter():
+    if 'hits' not in db.counter:
+        db.counter.hits = 0
+    db['counter']['hits'] += 1
+    return "Total hits: %d!" % db.counter.hits
+</pre>
+</body>

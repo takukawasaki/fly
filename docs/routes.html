@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Routes - fly Documentation</title>
+    <style  type="text/css">
+      h1 {border-bottom: 5px solid #ddd;}
+      pre {
+        background: #eee;
+        border: 1px dashed #ddd;
+        padding: 0 1em;
+        margin: 1em 10em 1em 1em;
+      }
+      #navigation {
+        float: right;
+        border: 1px solid #ddd;
+        border-width: 0 0 1px 1px;
+        background: #fff;
+        padding: 1em;
+        margin-left: 1em;
+      }
+    </style>
+  </head>
+<body>
+  <div id='navigation'>
+    <h3>Navigation</h3>
+    <ul>
+      <li><a href='./routes.html'>Routes</a></li>
+      <li><a href='./home.html'>Home</a></li>
+      <li><a href='./databases.html'>Databases</a></li>
+      <li><a href='./templates.html'>Templates</a></li>
+    </ul>
+  </div>
+  <h1>Routes</h1>
+  <p>Routes are used to map request URLs to callables that generate the response content. fly has a <code>route()</code> decorator to do that.</p>
+
+
+<pre>
+from fly import route, run
+
+@route('/hello')
+def hello():
+    return "Hello World!" 
+
+run() # This starts the HTTP server
+</pre>
+
+	<p>Run this script, visit http://localhost:8080/hello and you will see &#8220;Hello World!&#8221; in your Browser.</p>
+
+
+	<h3><span class="caps">GET</span>, POST, <span class="caps">HEAD</span>, ...</h3>
+
+
+	<p>The route decorator has an optional keyword argument <code>method</code> which defaults to <code>method='GET'</code>. Possible values are <span class="caps">POST</span>, PUT, <span class="caps">DELETE</span>, HEAD or any other <span class="caps">HTTP</span> request method you want to listen to.</p>
+
+
+<pre>
+from fly import route, request
+@route('/form/submit', method='POST')
+def form_submit():
+    form_data = request.POST
+    do_something(form_data)
+    return "Done" 
+</pre>
+
+	<h2><span class="caps">URL</span> Parameter</h2>
+
+
+	<p>You can extract parts of the <span class="caps">URL</span> and create dynamic routes with an easy syntax.</p>
+
+
+<pre>
+@route('/hello/:name')
+def hello(name):
+    return "Hello %s!" % name
+
+@route('/say/:what/to/:who')
+def say(what, who):
+    return "You said '%s' to %s!" % (what, who)
+</pre>
+
+	<p>By default, each <code>:placeholder</code> matches everything up to the next slash. To change that, you can add some regex:</p>
+
+
+<pre>
+  @route('/get_object/:id#[0-9]+#')
+  def get(id):
+    return "Object ID: %d" % int(id)
+</pre>
+
+	<p>or even use full features regular expressions:</p>
+
+
+<pre>
+  @route('/get_object/(?P&lt;id&gt;[0-9]+)')
+  def get(id):
+    return "Object ID: %d" % int(id)
+</pre>
+
+	<p><span class="caps">URL</span> parameter remain strings, even if your route only matches digits. You have to manually cast them to the type you need.</p>
+
+
+	<h2>The @validate() decorator</h2>
+
+
+	<p>fly offers a handy decorator called <code>validate()</code> to check and manipulate <span class="caps">URL</span> parameter before they are passed to your request handler. It takes callables as keyword arguments and filters every <span class="caps">URL</span> Parameter through the corresponding callable.</p>
+
+
+<pre>
+from fly import route, validate
+
+@route('/validate/:i/:f/:csv')
+@validate(i=int, f=float, csv=lambda x: map(int, x.strip().split(',')))
+def validate_test(i, f, csv):
+    return "Int: %d, Float:%f, List:%s" % (i, f, repr(csv))
+</pre>
+</body>

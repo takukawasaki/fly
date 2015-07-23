@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Templates - fly Documentation</title>
+    <style  type="text/css">
+      h1 {border-bottom: 5px solid #ddd;}
+      pre {
+        background: #eee;
+        border: 1px dashed #ddd;
+        padding: 0 1em;
+        margin: 1em 10em 1em 1em;
+      }
+      #navigation {
+        float: right;
+        border: 1px solid #ddd;
+        border-width: 0 0 1px 1px;
+        background: #fff;
+        padding: 1em;
+        margin-left: 1em;
+      }
+    </style>
+  </head>
+<body>
+  <div id='navigation'>
+    <h3>Navigation</h3>
+    <ul>
+      <li><a href='./routes.html'>Routes</a></li>
+      <li><a href='./home.html'>Home</a></li>
+      <li><a href='./databases.html'>Databases</a></li>
+      <li><a href='./templates.html'>Templates</a></li>
+    </ul>
+  </div>
+  <h1>Templates</h1>
+  <p>fly uses its own little template engine by default. You can use a template by calling <code>template(template_name, **template_arguments)</code> and returning the result.</p>
+
+
+<pre>
+@route('/hello/:name')
+def hello(name):
+    return template('hello_template', username=name)
+</pre>
+
+	<p>This will load the template &#8216;hello_template.tpl&#8217; with the &#8216;username&#8217; variable set to the <span class="caps">URL</span> :name part and return the result as a string.</p>
+
+
+	<p>The hello_template.tpl file could look like this:</p>
+
+
+<pre>
+  &lt;h1&gt;Hello {{username}}&lt;/h1&gt;
+  &lt;p&gt;How are you?&lt;/p&gt;
+</pre>
+
+	<h3>Template search path</h3>
+
+
+	<p>The list <code>fly.TEMPLATE_PATH</code> is used to map template names to actual files. By default, this list contains <code>['./%s.tpl', './views/%.tpl']</code></p>
+
+
+	<h2>Template Syntax</h2>
+
+
+	<p>The template syntax is a very thin layer around the python language. It&#8217;s main purpose is to provide the correct indention of blocks, so you can format your template without worrying about indentions. Here is the complete syntax:</p>
+
+
+	<ol>
+	<li><code>%...</code> starts a line of python code. You don&#8217;t have to worry about indentions. fly handles that for you.</li>
+		<li><code>%end</code> closes a Python block opened by <code>%if ...</code>, <code>%for ...</code> or other block statements. Explicitly closing of blocks is required.</li>
+		<li><code>{{...}}</code> prints the result of the included python statement.</li>
+		<li><code>%include template_name optional_arguments</code> allows you to include other templates.</li>
+		<li>Every other line is returned as text.</li>
+	</ol>
+
+
+	<p>Example:</p>
+
+
+<pre>
+%header = 'Test Template'
+%items = [1,2,3,'fly']
+%include http_header title=header, use_js=['jquery.js','default.js']
+
+&lt;h1&gt;{{header.title()}}&lt;/h1&gt;
+&lt;ul&gt;
+%for item in items:
+  &lt;li&gt;
+    %if isinstance(item, int):
+      Zahl: {{item}}
+    %else:
+      %try:
+        Other type: ({{type(item).__name__}}) {{repr(item)}}
+      %except:
+        Error: Item has no string representation.
+      %end try-block (yes, you may add comments here)
+    %end
+    &lt;/li&gt;
+  %end
+&lt;/ul&gt;
+
+%include http_foother
+
+</pre>
+</body>
