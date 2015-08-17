@@ -28,7 +28,7 @@
 
 __author__ = 'Taku Kawasaki'
 __version__ = ('0', '1')
-__license__ = 'BSD'
+__license__ = 'MIT'
 
 
 import cgi
@@ -273,7 +273,7 @@ class Response(threading.local):
 class HeaderDict(dict):
   """A dictionary with case insensitive keys."""
   def __setitem__(self,key,value):
-    return dict.__setitem__(self,key,title(),value)
+    return dict.__setitem__(self,key.title(),value)
 
   def __getitem__(self,key):
     return dict.__getitem__(self,key.title())
@@ -286,7 +286,7 @@ class HeaderDict(dict):
 
 
   def items(self):
-    for key ,value in dict.items(self):
+    for key ,values in dict.items(self):
       if not isinstance(values, list):
         values = [values]
       for value in values:
@@ -455,24 +455,21 @@ class ServerAdapter(object):
   def run(self,handler):
     pass
 
-class WSGIRefServer(ServerAdapter):
 
-  def run(self,handler):
+
+class WSGIRefServer(ServerAdapter):
+  def run(self, handler):
     from wsgiref.simple_server import make_server
-    srv = make_server(self.host,self.port,handler)
+    srv = make_server(self.host, self.port, handler)
     srv.serve_forever()
+                                  
+  
 
 class CherryPyServer(ServerAdapter):
   def run(self,handler):
     from cherrypy import wsgiserver
     server = wsgiserver.CherryPyWSGIServer((self.host,self.port),handler)
     server.start()
-
-
-class FlupServer(ServerAdapter):
-  def run (self,handler):
-    from flup.server.fcgi import WSGIServer
-    WSGIServer(handler,bindAddress=(self.host,self.port)).run()
 
     
 class PasteServer(ServerAdapter):
@@ -500,7 +497,7 @@ class FapwsServer(ServerAdapter):
     evwsgi.wsgi_cb(('',app))
     evwsgi.run()
 
-def run(server = WSGIRefServer,host= '127.0.0.1',port=8080,optinmize = False,**kargs):
+def run(server = CherryPyServer,host= '127.0.0.1', port=8080,optinmize = False,**kargs):
   
   """run fly webserver using builtin wsgiref """
   global OPTIMIZER
@@ -514,8 +511,8 @@ def run(server = WSGIRefServer,host= '127.0.0.1',port=8080,optinmize = False,**k
   if not isinstance(server,ServerAdapter):
     raise RuntimeError("server must be a subclass of ServerAdapter")
 
-  if not quit:
-    print("Fly server starting (using {!s})...".format(repr(server)))
+  if not quiet:
+    print("Fly server starting (using {!s})...".format(server))
     print('Listening on http://{!s}:{:d}'.format(server.host,server.port))
     print('use Ctrl-C to quit')
     print()
@@ -618,7 +615,7 @@ class SimpleTemplate(BaseTemplate):
         return ''.join(args['stdout'])
 
 
-def Template(template,template_adapter=SimpleTemplate,**args):
+def template(template,template_adapter=SimpleTemplate,**args):
   ''' Returns a string from a template '''
   if template not in TEMPLATES:
     if template.find("\n") == -1 and template.find("{") == -1 and template.find("%") == -1:
